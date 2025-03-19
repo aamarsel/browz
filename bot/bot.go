@@ -23,6 +23,8 @@ func InitBot(token string) error {
 
 	Bot = b
 
+	InitKeyboards()
+
 	b.Handle(telebot.OnCallback, CallbackHandler)
 	b.Handle("/start", StartHandler)
 	b.Handle("/admin", func(c telebot.Context) error {
@@ -32,6 +34,7 @@ func InitBot(token string) error {
 	b.Handle("/book", BookHandler)
 	b.Handle("/appointments", ListAppointments)
 	b.Handle(telebot.OnText, ProcessBooking)
+	b.Handle(telebot.OnText, MessageHandler)
 
 	log.Println("🤖 Бот запущен!")
 	b.Start()

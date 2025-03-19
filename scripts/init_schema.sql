@@ -28,5 +28,13 @@ CREATE TABLE IF NOT EXISTS bookings (
     UNIQUE(client_id, slot_id)
 );
 
+-- Таблица услуг
+CREATE TABLE IF NOT EXISTS services (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    price INT NOT NULL CHECK (price >= 0), -- Цена в рублях
+    duration INTERVAL NOT NULL -- Длительность услуги
+);
+
 CREATE INDEX IF NOT EXISTS idx_available_slots_date ON available_slots(date);
 CREATE INDEX IF NOT EXISTS idx_bookings_client ON bookings(client_id);

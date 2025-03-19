@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-
 	"gopkg.in/telebot.v3"
 
 	"github.com/aamarsel/browz/database"
@@ -73,57 +71,17 @@ func showTimeSlots(c telebot.Context, date string) error {
 
 func SlotPickerHandler(c telebot.Context) error {
 	data := c.Data()
-	return createBooking(c, data)
-}
-
-func createBooking(c telebot.Context, data string) error {
-	log.Println("Data:", data)
 	userID := c.Sender().ID
 
-	// Разбираем дату и время из data
-	date := data[11:21] // "2025-03-20"
-	time := data[34:39] // "08:00"
-	log.Println("LOG:", date, time)
-
-	// Получаем ID клиента по его Telegram ID
-	var clientID uuid.UUID
-	err := database.DB.QueryRow(
-		context.Background(),
-		"SELECT id FROM clients WHERE telegram_id = $1",
-		userID,
-	).Scan(&clientID)
-	if err != nil {
-		return c.Send("Ошибка: вы не зарегистрированы.")
+	tempStorage[userID] = SelectedSlot{
+		Date: data[:10],
+		Time: data[11:],
 	}
 
-	// Получаем ID слота, который клиент хочет забронировать
-	var slotID int
-	err = database.DB.QueryRow(
-		context.Background(),
-		`SELECT id FROM available_slots 
-			WHERE date = $1 
-			AND time = $2 
-			AND is_active = TRUE 
-			AND NOT EXISTS (SELECT 1 FROM bookings WHERE slot_id = available_slots.id)`,
-		date, time,
-	).Scan(&slotID)
-	if err != nil {
-		return c.Send("Ошибка: этот слот уже забронирован или недоступен.")
-	}
-
-	// Создаём бронирование
-	_, err = database.DB.Exec(
-		context.Background(),
-		`INSERT INTO bookings (client_id, slot_id) 
-		 VALUES ($1, $2) 
-		 ON CONFLICT (client_id, slot_id) DO NOTHING`,
-		clientID, slotID,
-	)
-	if err != nil {
-		return c.Send("Ошибка при записи! Попробуйте еще раз.")
-	}
-
-	return c.Send("✅ Вы успешно записаны!")
+	// Показываем список услуг
+	return c.Send("Выберите услугу:", &telebot.ReplyMarkup{
+		InlineKeyboard: GetServicesButtons(),
+	})
 }
 
 func getAvailableSlots(date string) ([]string, error) {
@@ -172,4 +130,55 @@ func getAvailableSlots(date string) ([]string, error) {
 		slots = append(slots, formatted)
 	}
 	return slots, nil
+}
+
+func GetServicesButtons() [][]telebot.InlineButton {
+	rows, err := database.DB.Query(context.Background(), "SELECT id, name, price, duration FROM services")
+	if err != nil {
+		log.Println("Ошибка при получении списка услуг:", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var buttons [][]telebot.InlineButton
+	for rows.Next() {
+		var id int
+		var name string
+		var price int
+		var duration time.Duration
+		err := rows.Scan(&id, &name, &price, &duration)
+		if err != nil {
+			log.Println("Ошибка при обработке строки услуги:", err)
+			continue
+		}
+
+		btn := telebot.InlineButton{
+			Text: fmt.Sprintf("%s, %s, %d руб", name, formatDuration(duration), price),
+			Data: fmt.Sprintf("pick_service:%d", id),
+		}
+		buttons = append(buttons, []telebot.InlineButton{btn})
+	}
+	return buttons
+}
+
+func formatDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	if minutes == 0 {
+		return fmt.Sprintf("%d ч", hours)
+	}
+	return fmt.Sprintf("%d ч %d мин", hours, minutes)
+}
+
+// Главное меню для клиентов
+var MainMenu = &telebot.ReplyMarkup{}
+
+var btnMyBookings = MainMenu.Text("📅 Мои бронирования")
+var btnNewBooking = MainMenu.Text("➕ Записаться к Зухре")
+
+func InitKeyboards() {
+	MainMenu.Reply(
+		MainMenu.Row(btnMyBookings),
+		MainMenu.Row(btnNewBooking),
+	)
 }
