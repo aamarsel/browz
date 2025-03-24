@@ -1,0 +1,101 @@
+package keyboards
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/aamarsel/browz/database"
+	"gopkg.in/telebot.v3"
+)
+
+// Главное меню
+var MainMenu = &telebot.ReplyMarkup{}
+
+var btnMyBookings = MainMenu.Text("📅 Мои бронирования")
+var btnNewBooking = MainMenu.Text("➕ Записаться к Зухре")
+
+func InitKeyboards() {
+	MainMenu.Reply(
+		MainMenu.Row(btnMyBookings),
+		MainMenu.Row(btnNewBooking),
+	)
+}
+
+// Показ календаря с выбором даты
+func ShowDatePicker(c telebot.Context) error {
+	today := time.Now()
+	btns := &telebot.ReplyMarkup{}
+
+	var rows []telebot.Row
+	for i := 0; i < 7; i++ {
+		date := today.AddDate(0, 0, i)
+		btn := btns.Data(date.Format("02.01.2006"), "pick_date", date.Format("2006-01-02"))
+		rows = append(rows, btns.Row(btn))
+	}
+
+	btns.Inline(rows...)
+	return c.Send("Выберите дату посещения:", btns)
+}
+
+// Показ доступных слотов
+func ShowTimeSlots(c telebot.Context, date string) error {
+	slots, err := database.GetAvailableSlots(date)
+	if err != nil {
+		return c.Send("Ошибка при загрузке доступных слотов")
+	}
+	if len(slots) == 0 {
+		c.Send("На этот день все слоты заняты. Выберите другой день")
+		return ShowDatePicker(c)
+	}
+
+	btns := &telebot.ReplyMarkup{ResizeKeyboard: true}
+	var rows []telebot.Row
+	for _, slot := range slots {
+		btn := btns.Data(slot, "pick_slot", date+" "+slot)
+		rows = append(rows, telebot.Row{btn})
+	}
+	btns.Inline(rows...)
+	return c.Send("Выберите время:", btns)
+}
+
+// Получение кнопок с услугами
+func GetServicesButtons() [][]telebot.InlineButton {
+	rows, err := database.DB.Query(context.Background(), "SELECT id, name, price, duration FROM services")
+	if err != nil {
+		log.Println("Ошибка при получении списка услуг:", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var buttons [][]telebot.InlineButton
+	for rows.Next() {
+		var id int
+		var name string
+		var price int
+		var duration time.Duration
+		err := rows.Scan(&id, &name, &price, &duration)
+		if err != nil {
+			log.Println("Ошибка при обработке строки услуги:", err)
+			continue
+		}
+
+		btn := telebot.InlineButton{
+			Text: fmt.Sprintf("%s, %s, %d руб", name, formatDuration(duration), price),
+			Data: fmt.Sprintf("pick_service:%d", id),
+		}
+		buttons = append(buttons, []telebot.InlineButton{btn})
+	}
+	return buttons
+}
+
+// Вспомогательная функция форматирования времени
+func formatDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	if minutes == 0 {
+		return fmt.Sprintf("%d ч", hours)
+	}
+	return fmt.Sprintf("%d ч %d мин", hours, minutes)
+}

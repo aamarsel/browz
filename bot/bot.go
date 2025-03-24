@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aamarsel/browz/handlers"
+	"github.com/aamarsel/browz/keyboards"
 	"gopkg.in/telebot.v3"
 )
 
@@ -23,18 +25,17 @@ func InitBot(token string) error {
 
 	Bot = b
 
-	InitKeyboards()
+	keyboards.InitKeyboards()
 
-	b.Handle(telebot.OnCallback, CallbackHandler)
-	b.Handle("/start", StartHandler)
+	b.Handle(telebot.OnCallback, handlers.CallbackHandler)
+	b.Handle("/start", handlers.StartHandler)
 	b.Handle("/admin", func(c telebot.Context) error {
 		log.Println("ID пользователя:", c.Sender().ID)
 		return c.Send("Zuhr! Твой ID: " + strconv.FormatInt(c.Sender().ID, 10))
 	})
-	b.Handle("/book", BookHandler)
-	b.Handle("/appointments", ListAppointments)
-	b.Handle(telebot.OnText, MessageHandler)
-	b.Handle(telebot.OnContact, ContactHandler)
+	b.Handle("/book", handlers.BookHandler)
+	b.Handle(telebot.OnText, handlers.MessageHandler)
+	b.Handle(telebot.OnContact, handlers.ContactHandler)
 
 	log.Println("🤖 Бот запущен!")
 	b.Start()
