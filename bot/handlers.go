@@ -15,7 +15,75 @@ import (
 )
 
 func StartHandler(c telebot.Context) error {
-	return c.Send("Привет! Я бот для записи на брови. Введите /book для записи.")
+	userID := c.Sender().ID
+
+	var exists bool
+	err := database.DB.QueryRow(context.Background(),
+		"SELECT EXISTS(SELECT 1 FROM clients WHERE telegram_id = $1)", userID).Scan(&exists)
+
+	if err != nil {
+		log.Println("Ошибка проверки клиента:", err)
+		return c.Send("Произошла ошибка. Попробуйте позже.")
+	}
+
+	if exists {
+		// Если клиент уже зарегистрирован, открываем главное меню
+		return c.Send("👋 С возвращением!", MainMenu)
+	}
+
+	// Если клиента нет, начинаем регистрацию
+	registrationStorage[userID] = RegistrationState{Name: "", Phone: ""}
+	userState[userID] = StateAwaitingName
+	return c.Send("👋 Привет!\nЭто бот для записи на брови к мастеру Зухре.\nДавай зарегистрируемся.\nКак тебя зовут?")
+}
+
+func processNameInput(c telebot.Context) error {
+	userID := c.Sender().ID
+	name := c.Text()
+
+	// Сохраняем имя во временное хранилище
+	state := registrationStorage[userID]
+	state.Name = name
+	registrationStorage[userID] = state
+
+	// Меняем состояние пользователя
+	userState[userID] = StateAwaitingContact
+
+	// Отправляем кнопку для отправки контакта
+	contactBtn := telebot.ReplyButton{Text: "📱 Поделиться контактом", Contact: true}
+	menu := &telebot.ReplyMarkup{
+		ReplyKeyboard:   [][]telebot.ReplyButton{{contactBtn}},
+		ResizeKeyboard:  true,
+		OneTimeKeyboard: true,
+	}
+	return c.Send("Теперь отправьте свой контакт, нажав на кнопку ниже:", menu)
+}
+
+func ContactHandler(c telebot.Context) error {
+	userID := c.Sender().ID
+
+	if c.Message().Contact == nil {
+		return c.Send("Пожалуйста, отправьте свой номер через кнопку ниже.")
+	}
+
+	phone := c.Message().Contact.PhoneNumber
+	state := registrationStorage[userID]
+	state.Phone = phone
+
+	// Сохраняем клиента в базе
+	_, err := database.DB.Exec(context.Background(),
+		"INSERT INTO clients (telegram_id, name, phone) VALUES ($1, $2, $3)",
+		userID, state.Name, state.Phone)
+
+	if err != nil {
+		log.Println("Ошибка сохранения клиента:", err)
+		return c.Send("Произошла ошибка при регистрации. Попробуйте позже.")
+	}
+
+	// Удаляем временные данные
+	delete(tempStorage, userID)
+
+	return c.Send("✅ Регистрация завершена! Добро пожаловать!", MainMenu)
 }
 
 func BookHandler(c telebot.Context) error {
@@ -40,26 +108,6 @@ func CallbackHandler(c telebot.Context) error {
 	}
 
 	return nil
-}
-
-func ProcessBooking(c telebot.Context) error {
-	data := strings.Fields(c.Text())
-	if len(data) < 4 {
-		return c.Send("Ошибка! Введите данные в формате: Имя Телефон Дата Время (пример: Анна +79998887766 2025-03-20 14:00)")
-	}
-
-	name, phone, date, time := data[0], data[1], data[2], data[3]
-
-	_, err := database.DB.Exec(context.Background(),
-		"INSERT INTO appointments (client_name, phone, appointment_date, appointment_time) VALUES ($1, $2, $3, $4)",
-		name, phone, date, time)
-
-	if err != nil {
-		log.Println("Ошибка при записи в БД:", err)
-		return c.Send("Ошибка при записи! Попробуйте еще раз.")
-	}
-
-	return c.Send(fmt.Sprintf("✅ %s, вы записаны на %s в %s!", name, date, time))
 }
 
 func ListAppointments(c telebot.Context) error {
@@ -179,10 +227,18 @@ func ConfirmBookingHandler(c telebot.Context) error {
 }
 
 func MessageHandler(c telebot.Context) error {
-	switch c.Text() {
-	case "➕ Записаться к Зухре":
-		return showDatePicker(c)
+	userID := c.Sender().ID
+
+	switch userState[userID] {
+	case StateAwaitingName:
+		return processNameInput(c) // Обработка имени
+
 	default:
-		return c.Send("Я не понял команду. Попробуйте снова.", MainMenu)
+		switch c.Text() {
+		case "➕ Записаться к Зухре":
+			return showDatePicker(c)
+		default:
+			return c.Send("Я не понял команду. Попробуйте снова.", &telebot.ReplyMarkup{ReplyKeyboard: MainMenu.ReplyKeyboard})
+		}
 	}
 }

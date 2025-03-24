@@ -33,8 +33,8 @@ func InitBot(token string) error {
 	})
 	b.Handle("/book", BookHandler)
 	b.Handle("/appointments", ListAppointments)
-	b.Handle(telebot.OnText, ProcessBooking)
 	b.Handle(telebot.OnText, MessageHandler)
+	b.Handle(telebot.OnContact, ContactHandler)
 
 	log.Println("🤖 Бот запущен!")
 	b.Start()
