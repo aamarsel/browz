@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aamarsel/browz/handlers"
-	"github.com/aamarsel/browz/keyboards"
 	"gopkg.in/telebot.v3"
 )
 
@@ -24,8 +23,6 @@ func InitBot(token string) error {
 	}
 
 	Bot = b
-
-	keyboards.InitKeyboards()
 
 	b.Handle(telebot.OnCallback, handlers.CallbackHandler)
 	b.Handle("/start", handlers.StartHandler)

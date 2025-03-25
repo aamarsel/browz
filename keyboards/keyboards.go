@@ -15,12 +15,35 @@ var MainMenu = &telebot.ReplyMarkup{}
 
 var btnMyBookings = MainMenu.Text("📅 Мои бронирования")
 var btnNewBooking = MainMenu.Text("➕ Записаться к Зухре")
+var btnFutureBookings = MainMenu.Text("📅 Будущие записи")
+var btnPendingBookings = MainMenu.Text("⏳ Неподтвержденные записи")
 
-func InitKeyboards() {
-	MainMenu.Reply(
-		MainMenu.Row(btnMyBookings),
-		MainMenu.Row(btnNewBooking),
+func GetMainMenu(isAdmin bool) *telebot.ReplyMarkup {
+	menu := &telebot.ReplyMarkup{}
+
+	// Кнопки для всех пользователей
+	menu.Reply(
+		menu.Row(btnMyBookings),
+		menu.Row(btnNewBooking),
 	)
+
+	// Если админ — добавляем доп. кнопки
+	if isAdmin {
+		menu.Reply(
+			menu.Row(btnFutureBookings),
+			menu.Row(btnPendingBookings),
+			menu.Row(btnMyBookings),
+			menu.Row(btnNewBooking),
+		)
+	}
+
+	return menu
+}
+
+func SendMainMenu(c telebot.Context, text string) error {
+	isAdmin := database.IsAdmin(fmt.Sprint(c.Sender().ID)) // Проверяем один раз
+	menu := GetMainMenu(isAdmin)
+	return c.Send(text, menu)
 }
 
 // Показ календаря с выбором даты

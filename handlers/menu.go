@@ -21,7 +21,11 @@ func MessageHandler(c telebot.Context) error {
 		return BookHandler(c)
 	case "📅 Мои бронирования":
 		return HandleMyBookings(c)
+	case "📅 Будущие записи":
+		return HandleFutureBookings(c)
+	case "⏳ Неподтвержденные записи":
+		return HandlePendingBookings(c)
 	default:
-		return c.Send("Я не понял команду.", keyboards.MainMenu)
+		return keyboards.SendMainMenu(c, "Я не понял команду.")
 	}
 }

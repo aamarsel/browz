@@ -12,8 +12,13 @@ type Appointment struct {
 }
 
 type Booking struct {
-	ID          string    `json:"id"`
-	DateTime    time.Time `json:"date_time"`
-	ServiceName string    `json:"service_name"`
-	Status      string    `json:"status"`
+	ID               string    `json:"id"`
+	ClientName       string    `json:"client_name"`
+	ClientID         string    `json:"client_id"`
+	ServiceID        string    `json:"service_id"`
+	SlotID           string    `json:"slot_id"`
+	DateTime         time.Time `json:"date_time"`
+	ClientTelegramID string    `json:"telegram_id"`
+	ServiceName      string    `json:"service_name"`
+	Status           string    `json:"status"`
 }

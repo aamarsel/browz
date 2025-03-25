@@ -20,7 +20,8 @@ func StartHandler(c telebot.Context) error {
 	}
 
 	if exists {
-		return c.Send("👋 С возвращением!", keyboards.MainMenu)
+		keyboards.SendMainMenu(c, "👋 С возвращением!")
+		return nil
 	}
 
 	// Начинаем регистрацию
@@ -69,5 +70,6 @@ func ContactHandler(c telebot.Context) error {
 	delete(models.RegistrationStorage, userID)
 	models.UserState[userID] = models.StateNone
 
-	return c.Send("✅ Регистрация завершена!", keyboards.MainMenu)
+	keyboards.SendMainMenu(c, "✅ Регистрация завершена!")
+	return nil
 }

@@ -36,5 +36,9 @@ CREATE TABLE IF NOT EXISTS services (
     duration INTERVAL NOT NULL -- Длительность услуги
 );
 
+CREATE TABLE IF NOT EXISTS admins (
+    client_id UUID PRIMARY KEY REFERENCES clients(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_available_slots_date ON available_slots(date);
 CREATE INDEX IF NOT EXISTS idx_bookings_client ON bookings(client_id);
