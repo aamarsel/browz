@@ -19,6 +19,8 @@ func MessageHandler(c telebot.Context) error {
 	switch c.Text() {
 	case "➕ Записаться к Зухре":
 		return BookHandler(c)
+	case "📅 Мои бронирования":
+		return HandleMyBookings(c)
 	default:
 		return c.Send("Я не понял команду.", keyboards.MainMenu)
 	}

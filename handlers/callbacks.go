@@ -27,7 +27,7 @@ func CallbackHandler(c telebot.Context) error {
 	} else if strings.Contains(callbackData, "confirm_booking") {
 		return ConfirmBookingHandler(c)
 	} else if strings.Contains(callbackData, "cancel_booking") {
-		return BookHandler(c)
+		return HandleCancelBooking(c)
 	} else {
 		log.Println("Ошибка! Неизвестный callback:", callbackData)
 	}

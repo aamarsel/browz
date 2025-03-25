@@ -10,3 +10,10 @@ type Appointment struct {
 	Time       string
 	Status     string
 }
+
+type Booking struct {
+	ID          string    `json:"id"`
+	DateTime    time.Time `json:"date_time"`
+	ServiceName string    `json:"service_name"`
+	Status      string    `json:"status"`
+}

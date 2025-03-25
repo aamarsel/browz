@@ -85,3 +85,90 @@ func GetAvailableSlots(date string) ([]string, error) {
 	}
 	return slots, nil
 }
+
+func GetUserBookings(telegramID string) ([]Booking, error) {
+	query := `
+		SELECT 
+			b.id, 
+			s.date, 
+			s.time, 
+			srv.name AS service_name, 
+			b.status
+		FROM bookings b
+		JOIN available_slots s ON b.slot_id = s.id
+		JOIN services srv ON b.service_id = srv.id
+		WHERE b.client_id = $1
+		ORDER BY s.date, s.time;
+	`
+
+	clientID, _ := GetUserIDByTelegram(telegramID)
+	rows, err := DB.Query(context.Background(), query, clientID)
+	if err != nil {
+		log.Println("Ошибка при получении бронирований:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var bookings []Booking
+
+	for rows.Next() {
+		var booking Booking
+		var slotDate time.Time
+		var slotTime string
+		log.Println("found row")
+
+		err := rows.Scan(&booking.ID, &slotDate, &slotTime, &booking.ServiceName, &booking.Status)
+		if err != nil {
+			log.Println("Ошибка при сканировании строки бронирования:", err)
+			continue
+		}
+
+		// Парсим строковое время в формат Go
+		parsedTime, err := time.Parse("15:04:05", slotTime)
+		if err != nil {
+			log.Println("Ошибка парсинга времени:", err)
+			continue
+		}
+
+		// Собираем полное время бронирования
+		booking.DateTime = time.Date(
+			slotDate.Year(), slotDate.Month(), slotDate.Day(),
+			parsedTime.Hour(), parsedTime.Minute(), 0, 0,
+			time.Local,
+		)
+
+		bookings = append(bookings, booking)
+	}
+
+	return bookings, nil
+}
+
+func GetUserIDByTelegram(telegramID string) (string, error) {
+	var clientID string
+	query := "SELECT id FROM clients WHERE telegram_id = $1"
+	err := DB.QueryRow(context.Background(), query, telegramID).Scan(&clientID)
+	return clientID, err
+}
+
+// CancelBooking отменяет бронирование, если оно ещё актуально
+func CancelBooking(telegramID string, bookingID string) error {
+	clientID, _ := GetUserIDByTelegram(telegramID)
+	log.Println(bookingID, clientID)
+
+	query := `
+		UPDATE bookings 
+		SET status = 'cancelled' 
+		WHERE id = $1 AND client_id = $2 AND status NOT IN ('cancelled', 'completed')
+	`
+	res, err := DB.Exec(context.Background(), query, bookingID, clientID)
+	if err != nil {
+		return err
+	}
+
+	// Проверяем, было ли обновлено хотя бы 1 бронирование
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("не удалось отменить запись (возможно, она уже отменена или завершена)")
+	}
+
+	return nil
+}

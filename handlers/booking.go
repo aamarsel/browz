@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/aamarsel/browz/database"
 	"github.com/aamarsel/browz/keyboards"
+	"github.com/aamarsel/browz/utils"
 	"gopkg.in/telebot.v3"
 )
 
@@ -39,4 +42,69 @@ func ConfirmBookingHandler(c telebot.Context) error {
 	}
 
 	return c.Send("✅ Ваша запись отправлена на подтверждение мастеру Зухре. Ожидайте, вам придет уведомление.", keyboards.MainMenu)
+}
+
+// HandleMyBookings обрабатывает нажатие на кнопку "📅 Мои бронирования"
+func HandleMyBookings(c telebot.Context) error {
+	clientID := c.Sender().Recipient() // Telegram ID пользователя
+
+	// Получаем все бронирования пользователя
+	bookings, err := database.GetUserBookings(clientID)
+	if err != nil {
+		log.Println("Ошибка при получении бронирований:", err)
+		return c.Send("Ошибка при загрузке бронирований. Попробуйте позже.")
+	}
+
+	// Если записей нет
+	if len(bookings) == 0 {
+		return c.Send("У вас пока нет бронирований.")
+	}
+
+	// Отправляем каждую запись отдельным сообщением
+	for _, booking := range bookings {
+		// Форматируем сообщение с записями
+		msgText := fmt.Sprintf(
+			"📅 *Дата:* %s\n"+
+				"💆 *Услуга:* %s\n"+
+				"🔹 *Статус:* %s",
+			booking.DateTime.Format("02.01.2006 15:04"),
+			booking.ServiceName,
+			utils.FormatStatus(booking.Status),
+		)
+
+		// Проверяем, можно ли отменить запись (если она в будущем)
+		btns := &telebot.ReplyMarkup{}
+		if booking.DateTime.After(time.Now()) && (booking.Status != "cancelled" && booking.Status != "completed") {
+			cancelBtn := btns.Data("❌ Отменить запись", "cancel_booking", booking.ID)
+			btns.Inline(btns.Row(cancelBtn))
+		}
+
+		// Отправляем сообщение
+		c.Send(msgText, btns, telebot.ModeMarkdown)
+	}
+
+	return nil
+}
+
+// HandleCancelBooking обрабатывает кнопку "❌ Отменить запись"
+func HandleCancelBooking(c telebot.Context) error {
+	telegramID := c.Sender().Recipient() // Получаем Telegram ID пользователя
+	// Получаем bookingID из callback данных
+	bookingID := strings.Split(c.Data(), "|")[1]
+
+	// Отменяем бронирование
+	err := database.CancelBooking(telegramID, bookingID)
+	if err != nil {
+		log.Println("Ошибка при отмене бронирования:", err)
+		return c.Respond(&telebot.CallbackResponse{
+			Text:      "Не удалось отменить запись. Возможно, она уже отменена или завершена.",
+			ShowAlert: true,
+		})
+	}
+
+	// Отвечаем пользователю
+	return c.Respond(&telebot.CallbackResponse{
+		Text:      "✅ Бронирование успешно отменено!",
+		ShowAlert: true,
+	})
 }
