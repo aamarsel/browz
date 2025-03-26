@@ -37,7 +37,7 @@ func HandleEditServices(c telebot.Context) error {
 			durationMinutes,
 		)
 
-		c.Send(text, markup)
+		c.Send(text, markup, telebot.ModeMarkdown)
 	}
 
 	return nil

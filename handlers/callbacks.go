@@ -95,7 +95,7 @@ func ServicePickerHandler(c telebot.Context) error {
 	timeStr := slot.Time[11:]
 
 	msg := fmt.Sprintf(
-		"📅 Дата: %s\n💆‍♀️ Услуга: %s\n⏳ Время работы мастера: %s\n💰 Цена: %d руб\n\n"+
+		"📅 *Дата:* %s\n💆‍♀️ *Услуга:* %s\n⏳ *Время работы мастера:* %s\n💰 *Цена:* %d руб\n\n"+
 			"Подтвердите свою запись к своему любимому мастеру Зухре 😊",
 		timeStr,
 		name,
@@ -108,5 +108,5 @@ func ServicePickerHandler(c telebot.Context) error {
 
 	return c.Send(msg, &telebot.ReplyMarkup{
 		InlineKeyboard: [][]telebot.InlineButton{{btnYes}, {btnNo}},
-	})
+	}, telebot.ModeMarkdown)
 }

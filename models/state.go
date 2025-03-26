@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 const (
 	StateAwaitingName            = "awaiting_name"
@@ -37,4 +41,11 @@ type Service struct {
 	Name     string
 	Price    int
 	Duration time.Duration
+}
+
+type Client struct {
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	Phone      string    `json:"phone"`
+	TelegramID int64     `json:"telegram_id"`
 }
