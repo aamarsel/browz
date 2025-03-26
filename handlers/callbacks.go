@@ -32,6 +32,8 @@ func CallbackHandler(c telebot.Context) error {
 		return HandleAcceptBooking(c)
 	} else if strings.Contains(callbackData, "decline_booking") {
 		return HandleDeclineBooking(c)
+	} else if strings.Contains(callbackData, "delete_service") {
+		return HandleDeleteService(c)
 	} else {
 		log.Println("Ошибка! Неизвестный callback:", callbackData)
 	}

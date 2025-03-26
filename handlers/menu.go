@@ -14,6 +14,12 @@ func MessageHandler(c telebot.Context) error {
 		return ProcessNameInput(c)
 	case models.StateAwaitingContact:
 		return c.Send("Пожалуйста, отправьте контакт кнопкой ниже.")
+	case models.StateAwaitingServiceName:
+		return ProcessServiceName(c)
+	case models.StateAwaitingServiceDuration:
+		return ProcessServiceDuration(c)
+	case models.StateAwaitingServicePrice:
+		return ProcessServicePrice(c)
 	}
 
 	switch c.Text() {
@@ -25,6 +31,10 @@ func MessageHandler(c telebot.Context) error {
 		return HandleFutureBookings(c)
 	case "⏳ Неподтвержденные записи":
 		return HandlePendingBookings(c)
+	case "✏️ Редактировать услуги":
+		return HandleEditServices(c)
+	case "➕ Добавить услугу":
+		return HandleAddService(c)
 	default:
 		return keyboards.SendMainMenu(c, "Я не понял команду.")
 	}

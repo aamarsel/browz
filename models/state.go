@@ -1,14 +1,26 @@
 package models
 
+import "time"
+
 const (
-	StateAwaitingName    = "awaiting_name"
-	StateAwaitingContact = "awaiting_contact"
-	StateNone            = "none"
+	StateAwaitingName            = "awaiting_name"
+	StateAwaitingContact         = "awaiting_contact"
+	StateNone                    = "none"
+	StateAwaitingServiceName     = "awaiting_service_name"
+	StateAwaitingServicePrice    = "awaiting_service_price"
+	StateAwaitingServiceDuration = "state_awaiting_service_duration"
 )
 
 var TempStorage = make(map[int64]SelectedSlot)
 var UserState = make(map[int64]string)
 var RegistrationStorage = make(map[int64]RegistrationState)
+var TempServiceData = make(map[int64]TempService)
+
+type TempService struct {
+	Name     string
+	Price    int
+	Duration int
+}
 
 type SelectedSlot struct {
 	Date string
@@ -18,4 +30,11 @@ type SelectedSlot struct {
 type RegistrationState struct {
 	Name  string
 	Phone string
+}
+
+type Service struct {
+	ID       int
+	Name     string
+	Price    int
+	Duration time.Duration
 }

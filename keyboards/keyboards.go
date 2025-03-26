@@ -17,6 +17,8 @@ var btnMyBookings = MainMenu.Text("📅 Мои бронирования")
 var btnNewBooking = MainMenu.Text("➕ Записаться к Зухре")
 var btnFutureBookings = MainMenu.Text("📅 Будущие записи")
 var btnPendingBookings = MainMenu.Text("⏳ Неподтвержденные записи")
+var btnEditServices = MainMenu.Text("✏️ Редактировать услуги")
+var btnNewService = MainMenu.Text("➕ Добавить услугу")
 
 func GetMainMenu(isAdmin bool) *telebot.ReplyMarkup {
 	menu := &telebot.ReplyMarkup{}
@@ -34,6 +36,8 @@ func GetMainMenu(isAdmin bool) *telebot.ReplyMarkup {
 			menu.Row(btnPendingBookings),
 			menu.Row(btnMyBookings),
 			menu.Row(btnNewBooking),
+			menu.Row(btnEditServices),
+			menu.Row(btnNewService),
 		)
 	}
 
