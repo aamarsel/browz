@@ -11,7 +11,6 @@ import (
 	"github.com/aamarsel/browz/database"
 	"github.com/aamarsel/browz/keyboards"
 	"github.com/aamarsel/browz/models"
-	"github.com/aamarsel/browz/utils"
 	"gopkg.in/telebot.v3"
 )
 
@@ -34,6 +33,8 @@ func CallbackHandler(c telebot.Context) error {
 		return HandleDeclineBooking(c)
 	} else if strings.Contains(callbackData, "delete_service") {
 		return HandleDeleteService(c)
+	} else if strings.Contains(callbackData, "go_back") {
+		return keyboards.SendMainMenu(c, "Главное меню")
 	} else {
 		log.Println("Ошибка! Неизвестный callback:", callbackData)
 	}
@@ -92,19 +93,21 @@ func ServicePickerHandler(c telebot.Context) error {
 		return c.Send("Ошибка: выберите слот перед выбором услуги.")
 	}
 
-	timeStr := slot.Time[11:]
+	// Извлекаем дату и время отдельно
+	dateStr := slot.Time[11:21] // 30.03.2025
+	timeStr := slot.Time[23:28] // 13:30
 
 	msg := fmt.Sprintf(
-		"📅 *Дата:* %s\n💆‍♀️ *Услуга:* %s\n⏳ *Время работы мастера:* %s\n💰 *Цена:* %d руб\n\n"+
+		"📅 *Дата:* %s\n🕒 *Время:* %s\n💆‍♀️ *Услуга:* %s\n💰 *Цена:* %d руб\n\n"+
 			"Подтвердите свою запись к своему любимому мастеру Зухре 😊",
+		dateStr,
 		timeStr,
 		name,
-		utils.FormatDuration(duration),
 		price,
 	)
 
 	btnYes := telebot.InlineButton{Text: "✅ Да", Data: fmt.Sprintf("confirm_booking|%d|%s", serviceID, timeStr)}
-	btnNo := telebot.InlineButton{Text: "❌ Нет", Data: "cancel_booking"}
+	btnNo := telebot.InlineButton{Text: "❌ Нет", Data: "go_back"}
 
 	return c.Send(msg, &telebot.ReplyMarkup{
 		InlineKeyboard: [][]telebot.InlineButton{{btnYes}, {btnNo}},

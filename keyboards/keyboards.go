@@ -109,7 +109,7 @@ func GetServicesButtons() [][]telebot.InlineButton {
 		}
 
 		btn := telebot.InlineButton{
-			Text: fmt.Sprintf("%s, %s, %d руб", name, formatDuration(duration), price),
+			Text: fmt.Sprintf("%s, %d руб", name, price),
 			Data: fmt.Sprintf("pick_service:%d", id),
 		}
 		buttons = append(buttons, []telebot.InlineButton{btn})
