@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aamarsel/browz/handlers"
+	"github.com/aamarsel/browz/scheduler"
 	"gopkg.in/telebot.v3"
 )
 
@@ -33,6 +34,8 @@ func InitBot(token string) error {
 	b.Handle("/book", handlers.BookHandler)
 	b.Handle(telebot.OnText, handlers.MessageHandler)
 	b.Handle(telebot.OnContact, handlers.ContactHandler)
+	scheduler.StartScheduler(b)
+	scheduler.CompleteOldBookings(b)
 
 	log.Println("🤖 Бот запущен!")
 	b.Start()

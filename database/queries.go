@@ -92,7 +92,8 @@ func GetUserBookings(telegramID string) ([]Booking, error) {
 			b.id, 
 			s.date, 
 			s.time, 
-			srv.name AS service_name, 
+			srv.name AS service_name,
+			srv.price AS service_price, 
 			b.status
 		FROM bookings b
 		JOIN available_slots s ON b.slot_id = s.id
@@ -117,7 +118,7 @@ func GetUserBookings(telegramID string) ([]Booking, error) {
 		var slotTime string
 		log.Println("found row")
 
-		err := rows.Scan(&booking.ID, &slotDate, &slotTime, &booking.ServiceName, &booking.Status)
+		err := rows.Scan(&booking.ID, &slotDate, &slotTime, &booking.ServiceName, &booking.ServicePrice, &booking.Status)
 		if err != nil {
 			log.Println("Ошибка при сканировании строки бронирования:", err)
 			continue

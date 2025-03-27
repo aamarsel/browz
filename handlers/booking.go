@@ -109,9 +109,11 @@ func HandleMyBookings(c telebot.Context) error {
 		msgText := fmt.Sprintf(
 			"📅 *Дата:* %s\n"+
 				"💆 *Услуга:* %s\n"+
+				"💵 *Цена:* %d ₽\n"+
 				"🔹 *Статус:* %s",
 			booking.DateTime.Format("02.01.2006 15:04"),
 			booking.ServiceName,
+			booking.ServicePrice,
 			utils.FormatStatus(booking.Status),
 		)
 
