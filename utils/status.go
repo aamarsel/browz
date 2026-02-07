@@ -8,7 +8,7 @@ func FormatStatus(status string) string {
 	case "cancelled":
 		return "❌ Отменено"
 	case "pending":
-		return "⏳ В ожидании"
+		return "⏳ В ожидании подтерждения"
 	case "accepted":
 		return "✅ Принято Зухрой"
 	default:

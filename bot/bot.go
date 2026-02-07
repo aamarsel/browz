@@ -2,9 +2,11 @@ package bot
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/aamarsel/browz/cleanup"
 	"github.com/aamarsel/browz/handlers"
 	"github.com/aamarsel/browz/scheduler"
 	"gopkg.in/telebot.v3"
@@ -38,6 +40,10 @@ func InitBot(token string) error {
 	scheduler.CompleteOldBookings(b)
 
 	log.Println("🤖 Бот запущен!")
+	if os.Getenv("RUN_CLEANUP") == "true" {
+		log.Println("⏰ Запуск ежедневной очистки просроченных бронирований")
+		cleanup.ClearExpired()
+	}
 	b.Start()
 	return nil
 }

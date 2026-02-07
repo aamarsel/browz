@@ -106,7 +106,8 @@ func ServicePickerHandler(c telebot.Context) error {
 		price,
 	)
 
-	btnYes := telebot.InlineButton{Text: "✅ Да", Data: fmt.Sprintf("confirm_booking|%d|%s", serviceID, timeStr)}
+	fullDateStr := dateStr + " " + timeStr
+	btnYes := telebot.InlineButton{Text: "✅ Да", Data: fmt.Sprintf("confirm_booking|%d|%s", serviceID, fullDateStr)}
 	btnNo := telebot.InlineButton{Text: "❌ Нет", Data: "go_back"}
 
 	return c.Send(msg, &telebot.ReplyMarkup{

@@ -28,7 +28,7 @@ func ConfirmBookingHandler(c telebot.Context) error {
 	date := parts[2][:10]
 	parsedDate, _ := time.Parse("02.01.2006", date)
 	formattedDate := parsedDate.Format("2006-01-02")
-	parsedTime, _ := time.Parse("15:04", parts[2][12:17])
+	parsedTime, _ := time.Parse("15:04", parts[2][11:16])
 	formattedTime := parsedTime.Format("15:04:00")
 	userID := c.Sender().ID
 
@@ -39,6 +39,7 @@ func ConfirmBookingHandler(c telebot.Context) error {
 
 	err = database.BookSlot(userID, slotID, serviceID)
 	if err != nil {
+		log.Println("Ошибка при бронировании слота:", err)
 		return c.Send("Ошибка при создании бронирования.")
 	}
 
@@ -76,7 +77,7 @@ func ConfirmBookingHandler(c telebot.Context) error {
 		client.Phone,
 		service.Name,
 		date,
-		parts[2][12:17], // Отображаем время в исходном формате
+		parts[2][11:16], // Отображаем время в исходном формате
 	)
 
 	// Отправляем сообщение Зухре
