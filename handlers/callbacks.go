@@ -35,6 +35,8 @@ func CallbackHandler(c telebot.Context) error {
 		return HandleDeleteService(c)
 	} else if strings.Contains(callbackData, "go_back") {
 		return keyboards.SendMainMenu(c, "Главное меню")
+	} else if strings.Contains(callbackData, "rate_service") {
+		return RateHandler(c)
 	} else {
 		log.Println("Ошибка! Неизвестный callback:", callbackData)
 	}
@@ -65,6 +67,29 @@ func SlotPickerHandler(c telebot.Context) error {
 	return c.Send("Выберите услугу:", &telebot.ReplyMarkup{
 		InlineKeyboard: keyboards.GetServicesButtons(),
 	})
+}
+
+func RateHandler(c telebot.Context) error {
+	data := c.Data()
+	parts := strings.Split(data, "|")
+	log.Println("Полученные данные для рейтинга:", parts)
+	if len(parts) != 3 {
+		return c.Send("Ошибка: неверный формат данных для оценки.")
+	}
+	bookingID := parts[1]
+	rating, err := strconv.Atoi(parts[2])
+	if err != nil {
+		log.Println("Ошибка при конвертации рейтинга:", err)
+		return c.Send("Ошибка: неверный формат рейтинга.")
+	}
+
+	err = database.SaveRating(bookingID, rating)
+	if err != nil {
+		log.Println("Ошибка при сохранении рейтинга:", err)
+		return c.Send("Ошибка при сохранении рейтинга: " + err.Error())
+	}
+
+	return c.Send("Спасибо за оценку!")
 }
 
 func ServicePickerHandler(c telebot.Context) error {

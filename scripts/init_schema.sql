@@ -42,3 +42,11 @@ CREATE TABLE IF NOT EXISTS admins (
 
 CREATE INDEX IF NOT EXISTS idx_available_slots_date ON available_slots(date);
 CREATE INDEX IF NOT EXISTS idx_bookings_client ON bookings(client_id);
+
+CREATE TABLE IF NOT EXISTS ratings (
+  id SERIAL PRIMARY KEY,
+  booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE UNIQUE,
+  score INT CHECK (score BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);

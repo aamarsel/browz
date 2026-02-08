@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 )
@@ -84,4 +85,21 @@ func UpdateBookingStatus(bookingID, newStatus string) (*Booking, error) {
 	)
 
 	return &booking, nil
+}
+
+func SaveRating(bookingID string, rating int) error {
+	precheckQuery := `SELECT id FROM ratings WHERE booking_id = $1`
+	var existingID string
+	existingErr := DB.QueryRow(context.Background(), precheckQuery, bookingID).Scan(&existingID)
+	if existingErr == nil && existingID != "" {
+		log.Println("Рейтинг уже существует для бронирования:", bookingID)
+		return fmt.Errorf("Для данного посещения уже была оставлена оценка")
+	}
+
+	query := `
+		INSERT INTO ratings (booking_id, score, created_at)
+		VALUES ($1, $2, NOW())
+	`
+	_, err := DB.Exec(context.Background(), query, bookingID, rating)
+	return err
 }
