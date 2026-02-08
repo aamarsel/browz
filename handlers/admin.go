@@ -11,7 +11,7 @@ import (
 )
 
 func HandleFutureBookings(c telebot.Context) error {
-	appointments, err := database.GetBookingsByStatus("accepted")
+	appointments, err := database.GetBookingsByStatus("accepted", true)
 	if err != nil {
 		return c.Send("Ошибка при получении записей.")
 	}
@@ -29,13 +29,18 @@ func HandleFutureBookings(c telebot.Context) error {
 			booking.ServiceName,
 			booking.ClientName,
 		)
-		c.Send(msgText, telebot.ModeMarkdown)
+
+		btns := &telebot.ReplyMarkup{}
+		cancelBtn := btns.Data("❌ Отменить запись", "cancel_admin_booking", booking.ID)
+		btns.Inline(btns.Row(cancelBtn))
+
+		c.Send(msgText, btns, telebot.ModeMarkdown)
 	}
 	return nil
 }
 
 func HandlePendingBookings(c telebot.Context) error {
-	appointments, err := database.GetBookingsByStatus("pending")
+	appointments, err := database.GetBookingsByStatus("pending", false)
 	if err != nil {
 		return c.Send("Ошибка при получении записей.")
 	}

@@ -8,14 +8,25 @@ import (
 )
 
 // Получение записей по статусу
-func GetBookingsByStatus(status string) ([]Booking, error) {
+func GetBookingsByStatus(
+	status string,
+	future bool,
+) ([]Booking, error) {
 	query := `
-	SELECT b.id, c.name, s.name, sl.date, sl.time, b.status
+		SELECT b.id, c.name, s.name, sl.date, sl.time, b.status
 		FROM bookings b
 		JOIN clients c ON b.client_id = c.id
 		JOIN services s ON b.service_id = s.id
 		JOIN available_slots sl ON b.slot_id = sl.id
 		WHERE b.status = $1
+	`
+	if future {
+		query += `
+			AND sl.date >= CURRENT_DATE 
+			OR (sl.date = CURRENT_DATE AND sl.time >= CURRENT_TIME)
+		`
+	}
+	query += `
 		ORDER BY sl.date, sl.time;
 	`
 	rows, err := DB.Query(context.Background(), query, status)

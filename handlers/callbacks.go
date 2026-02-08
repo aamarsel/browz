@@ -37,6 +37,8 @@ func CallbackHandler(c telebot.Context) error {
 		return keyboards.SendMainMenu(c, "Главное меню")
 	} else if strings.Contains(callbackData, "rate_service") {
 		return RateHandler(c)
+	} else if strings.Contains(callbackData, "cancel_admin_booking") {
+		return HandleAdminCancelBooking(c)
 	} else {
 		log.Println("Ошибка! Неизвестный callback:", callbackData)
 	}
@@ -90,6 +92,31 @@ func RateHandler(c telebot.Context) error {
 	}
 
 	return c.Send("Спасибо за оценку!")
+}
+
+func HandleAdminCancelBooking(c telebot.Context) error {
+	bookingID := strings.Split(c.Data(), "|")[1]
+	booking, err := database.UpdateBookingStatus(bookingID, "canceled")
+	if err != nil {
+		log.Println("Ошибка при отмене записи:", err)
+		return c.Send("Ошибка при отмене записи.")
+	}
+
+	// Отправляем уведомление пользователю
+	id, _ := strconv.ParseInt(booking.ClientTelegramID, 10, 64)
+	recipient := &telebot.User{ID: id}
+	notification := fmt.Sprintf(
+		"❌ *Ваша запись была отменена Зухрой.*\n\n"+
+			"*Дата:* %s\n"+
+			"*Время:* %s\n"+
+			"*Услуга:* %s\n",
+		booking.DateTime.Format("02.01.2006"),
+		booking.DateTime.Format("15:04"),
+		booking.ServiceName,
+	)
+	c.Bot().Send(recipient, notification, telebot.ModeMarkdown)
+
+	return c.Send("Запись отменена.")
 }
 
 func ServicePickerHandler(c telebot.Context) error {
