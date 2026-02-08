@@ -106,15 +106,21 @@ func HandleMyBookings(c telebot.Context) error {
 
 	// Отправляем каждую запись отдельным сообщением
 	for _, booking := range bookings {
+		ratingText := "Нет оценки"
+		if booking.Rating != nil {
+			ratingText = fmt.Sprintf("%d/5", *booking.Rating)
+		}
 		// Форматируем сообщение с записями
 		msgText := fmt.Sprintf(
 			"📅 *Дата:* %s\n"+
 				"💆 *Услуга:* %s\n"+
 				"💵 *Цена:* %d ₽\n"+
+				"⭐ *Оценка:* %s\n"+
 				"🔹 *Статус:* %s",
 			booking.DateTime.Format("02.01.2006 15:04"),
 			booking.ServiceName,
 			booking.ServicePrice,
+			ratingText,
 			utils.FormatStatus(booking.Status),
 		)
 

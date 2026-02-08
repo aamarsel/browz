@@ -18,6 +18,7 @@ type Booking struct {
 	ServiceID        string    `json:"service_id"`
 	SlotID           string    `json:"slot_id"`
 	DateTime         time.Time `json:"date_time"`
+	Rating           *int      `json:"rating"`
 	ClientTelegramID string    `json:"telegram_id"`
 	ServiceName      string    `json:"service_name"`
 	ServicePrice     int       `json:"service_price"`
