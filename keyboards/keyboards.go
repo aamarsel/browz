@@ -52,15 +52,19 @@ func SendMainMenu(c telebot.Context, text string) error {
 }
 
 // Показ календаря с выбором даты
-func ShowDatePicker(c telebot.Context) error {
+func ShowDatePicker(c telebot.Context, page int) error {
 	today := time.Now()
 	btns := &telebot.ReplyMarkup{}
 
 	var rows []telebot.Row
 	for i := 0; i < 7; i++ {
-		date := today.AddDate(0, 0, i)
+		date := today.AddDate(0, 0, i+page*7)
 		btn := btns.Data(date.Format("02.01.2006"), "pick_date", date.Format("2006-01-02"))
 		rows = append(rows, btns.Row(btn))
+	}
+	rows = append(rows, btns.Row(btns.Data(">>", "next_date_page", fmt.Sprintf("%d", page+1))))
+	if page > 0 {
+		rows = append(rows, btns.Row(btns.Data("<<", "prev_date_page", fmt.Sprintf("%d", page-1))))
 	}
 
 	btns.Inline(rows...)
@@ -75,7 +79,7 @@ func ShowTimeSlots(c telebot.Context, date string) error {
 	}
 	if len(slots) == 0 {
 		c.Send("На этот день все слоты заняты. Выберите другой день")
-		return ShowDatePicker(c)
+		return ShowDatePicker(c, 0)
 	}
 
 	btns := &telebot.ReplyMarkup{ResizeKeyboard: true}

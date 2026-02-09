@@ -37,6 +37,20 @@ func CallbackHandler(c telebot.Context) error {
 		return keyboards.SendMainMenu(c, "Главное меню")
 	} else if strings.Contains(callbackData, "rate_service") {
 		return RateHandler(c)
+	} else if strings.Contains(callbackData, "next_date_page") {
+		page, err := strconv.Atoi(strings.Split(callbackData, "|")[1])
+		if err != nil {
+			log.Println("Ошибка при парсинге номера страницы:", err)
+			return c.Send("Ошибка при переходе к следующей странице.")
+		}
+		return keyboards.ShowDatePicker(c, page)
+	} else if strings.Contains(callbackData, "prev_date_page") {
+		page, err := strconv.Atoi(strings.Split(callbackData, "|")[1])
+		if err != nil {
+			log.Println("Ошибка при парсинге номера страницы:", err)
+			return c.Send("Ошибка при переходе к предыдущей странице.")
+		}
+		return keyboards.ShowDatePicker(c, page)
 	} else if strings.Contains(callbackData, "cancel_admin_booking") {
 		return HandleAdminCancelBooking(c)
 	} else {

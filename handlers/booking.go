@@ -15,7 +15,7 @@ import (
 )
 
 func BookHandler(c telebot.Context) error {
-	return keyboards.ShowDatePicker(c)
+	return keyboards.ShowDatePicker(c, 0)
 }
 
 func ConfirmBookingHandler(c telebot.Context) error {
