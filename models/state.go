@@ -49,3 +49,17 @@ type Client struct {
 	Phone      string    `json:"phone"`
 	TelegramID int64     `json:"telegram_id"`
 }
+
+type Booking struct {
+	ID               string    `json:"id"`
+	ClientName       string    `json:"client_name"`
+	ClientID         string    `json:"client_id"`
+	ServiceID        string    `json:"service_id"`
+	SlotID           string    `json:"slot_id"`
+	DateTime         time.Time `json:"date_time"`
+	Rating           *int      `json:"rating"`
+	ClientTelegramID string    `json:"telegram_id"`
+	ServiceName      string    `json:"service_name"`
+	ServicePrice     int       `json:"service_price"`
+	Status           string    `json:"status"`
+}

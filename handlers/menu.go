@@ -29,6 +29,8 @@ func MessageHandler(c telebot.Context) error {
 		return HandleMyBookings(c)
 	case "📅 Будущие записи":
 		return HandleFutureBookings(c)
+	case "📜 Прошлые записи":
+		return HandleOldBookings(c)
 	case "⏳ Неподтвержденные записи":
 		return HandlePendingBookings(c)
 	case "✏️ Редактировать услуги":

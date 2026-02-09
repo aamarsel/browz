@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/aamarsel/browz/models"
 	"github.com/aamarsel/browz/utils"
 )
 
@@ -86,7 +87,7 @@ func GetAvailableSlots(date string) ([]string, error) {
 	return slots, nil
 }
 
-func GetUserBookings(telegramID string) ([]Booking, error) {
+func GetUserBookings(telegramID string) ([]models.Booking, error) {
 	query := `
 		SELECT 
 			b.id, 
@@ -112,10 +113,10 @@ func GetUserBookings(telegramID string) ([]Booking, error) {
 	}
 	defer rows.Close()
 
-	var bookings []Booking
+	var bookings []models.Booking
 
 	for rows.Next() {
-		var booking Booking
+		var booking models.Booking
 		var slotDate time.Time
 		var slotTime string
 		log.Println("found row")

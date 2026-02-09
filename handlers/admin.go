@@ -39,6 +39,27 @@ func HandleFutureBookings(c telebot.Context) error {
 	return nil
 }
 
+func HandleOldBookings(c telebot.Context) error {
+	bookings, err := database.GetPastBookings(c)
+	if err != nil {
+		return c.Send("Ошибка при получении записей.")
+	}
+
+	for _, booking := range bookings {
+		msgText := fmt.Sprintf(
+			"📅 *Дата:* %s\n"+
+				"💆 *Услуга:* %s\n"+
+				"👤 *Клиент:* %s\n",
+			booking.DateTime.Format("02.01.2006 15:04"),
+			booking.ServiceName,
+			booking.ClientName,
+		)
+
+		c.Send(msgText, telebot.ModeMarkdown)
+	}
+	return nil
+}
+
 func HandlePendingBookings(c telebot.Context) error {
 	appointments, err := database.GetBookingsByStatus("pending", false)
 	if err != nil {

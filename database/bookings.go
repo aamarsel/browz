@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/aamarsel/browz/helpers"
+	"github.com/aamarsel/browz/models"
+	"gopkg.in/telebot.v3"
 )
 
 // Получение записей по статусу
 func GetBookingsByStatus(
 	status string,
 	future bool,
-) ([]Booking, error) {
+) ([]models.Booking, error) {
 	query := `
 		SELECT b.id, c.name, s.name, sl.date, sl.time, b.status
 		FROM bookings b
@@ -36,34 +40,39 @@ func GetBookingsByStatus(
 	}
 	defer rows.Close()
 
-	var bookings []Booking
-	for rows.Next() {
-		var b Booking
-		var date time.Time
-		var timeStr string
-		if err := rows.Scan(&b.ID, &b.ClientName, &b.ServiceName, &date, &timeStr, &b.Status); err != nil {
-			log.Println("Ошибка при обработке записи:", err)
-			continue
-		}
+	return helpers.ParseBookingsFromRows(rows)
+}
 
-		// Парсим время и объединяем с датой
-		parsedTime, _ := time.Parse("15:04:05", timeStr)
-		b.DateTime = time.Date(date.Year(), date.Month(), date.Day(), parsedTime.Hour(), parsedTime.Minute(), 0, 0, time.UTC)
-
-		bookings = append(bookings, b)
+func GetPastBookings(c telebot.Context) ([]models.Booking, error) {
+	query := `
+		SELECT b.id, c.name, s.name, sl.date, sl.time, b.status
+		FROM bookings b
+		JOIN clients c ON b.client_id = c.id
+		JOIN services s ON b.service_id = s.id
+		JOIN available_slots sl ON b.slot_id = sl.id
+		WHERE sl.date < CURRENT_DATE 
+		OR (sl.date = CURRENT_DATE AND sl.time < CURRENT_TIME)
+		ORDER BY sl.date, sl.time;
+	`
+	rows, err := DB.Query(context.Background(), query)
+	if err != nil {
+		log.Println("Ошибка при получении записей в БД (прошедших):", err)
+		return nil, err
 	}
-	return bookings, nil
+	defer rows.Close()
+
+	return helpers.ParseBookingsFromRows(rows)
 }
 
 // Обновление статуса записи
-func UpdateBookingStatus(bookingID, newStatus string) (*Booking, error) {
+func UpdateBookingStatus(bookingID, newStatus string) (*models.Booking, error) {
 	query := `
 		UPDATE bookings 
 		SET status = $1 
 		WHERE id = $2 
 		RETURNING id, client_id, service_id, slot_id, status
 	`
-	var booking Booking
+	var booking models.Booking
 	err := DB.QueryRow(context.Background(), query, newStatus, bookingID).Scan(
 		&booking.ID, &booking.ClientID, &booking.ServiceID, &booking.SlotID, &booking.Status,
 	)
