@@ -14,7 +14,9 @@ func ParseBookingsFromRows(rows pgx.Rows) ([]models.Booking, error) {
 		var b models.Booking
 		var date time.Time
 		var timeStr string
-		if err := rows.Scan(&b.ID, &b.ClientName, &b.ServiceName, &date, &timeStr, &b.Status); err != nil {
+
+		err := rows.Scan(&b.ID, &b.ClientName, &b.ServiceName, &date, &timeStr, &b.Status, &b.Rating)
+		if err != nil {
 			log.Println("Ошибка при обработке записи:", err)
 			continue
 		}

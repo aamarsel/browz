@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aamarsel/browz/database"
+	"github.com/aamarsel/browz/utils"
 	"gopkg.in/telebot.v3"
 )
 
@@ -46,13 +47,21 @@ func HandleOldBookings(c telebot.Context) error {
 	}
 
 	for _, booking := range bookings {
+		ratingText := "Нет оценки"
+		if booking.Rating != nil {
+			ratingText = fmt.Sprintf("%d/5", *booking.Rating)
+		}
 		msgText := fmt.Sprintf(
 			"📅 *Дата:* %s\n"+
 				"💆 *Услуга:* %s\n"+
-				"👤 *Клиент:* %s\n",
+				"👤 *Клиент:* %s\n"+
+				"🔹 *Статус:* %s\n"+
+				"🌟 *Рейтинг:* %s",
 			booking.DateTime.Format("02.01.2006 15:04"),
 			booking.ServiceName,
 			booking.ClientName,
+			utils.FormatStatus(booking.Status),
+			ratingText,
 		)
 
 		c.Send(msgText, telebot.ModeMarkdown)

@@ -16,12 +16,7 @@ func GetBookingsByStatus(
 	status string,
 	future bool,
 ) ([]models.Booking, error) {
-	query := `
-		SELECT b.id, c.name, s.name, sl.date, sl.time, b.status
-		FROM bookings b
-		JOIN clients c ON b.client_id = c.id
-		JOIN services s ON b.service_id = s.id
-		JOIN available_slots sl ON b.slot_id = sl.id
+	query := buildBookingsQuery() + `
 		WHERE b.status = $1
 	`
 	if future {
@@ -44,12 +39,7 @@ func GetBookingsByStatus(
 }
 
 func GetPastBookings(c telebot.Context) ([]models.Booking, error) {
-	query := `
-		SELECT b.id, c.name, s.name, sl.date, sl.time, b.status
-		FROM bookings b
-		JOIN clients c ON b.client_id = c.id
-		JOIN services s ON b.service_id = s.id
-		JOIN available_slots sl ON b.slot_id = sl.id
+	query := buildBookingsQuery() + `
 		WHERE sl.date < CURRENT_DATE 
 		OR (sl.date = CURRENT_DATE AND sl.time < CURRENT_TIME)
 		ORDER BY sl.date, sl.time;
@@ -122,4 +112,15 @@ func SaveRating(bookingID string, rating int) error {
 	`
 	_, err := DB.Exec(context.Background(), query, bookingID, rating)
 	return err
+}
+
+func buildBookingsQuery() string {
+	return `
+		SELECT b.id, c.name, s.name, sl.date, sl.time, b.status, r.score
+		FROM bookings b
+		JOIN clients c ON b.client_id = c.id
+		JOIN services s ON b.service_id = s.id
+		JOIN available_slots sl ON b.slot_id = sl.id
+		LEFT JOIN ratings r ON b.id = r.booking_id
+	`
 }
