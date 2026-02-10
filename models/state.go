@@ -7,12 +7,15 @@ import (
 )
 
 const (
-	StateAwaitingName            = "awaiting_name"
-	StateAwaitingContact         = "awaiting_contact"
-	StateNone                    = "none"
-	StateAwaitingServiceName     = "awaiting_service_name"
-	StateAwaitingServicePrice    = "awaiting_service_price"
-	StateAwaitingServiceDuration = "state_awaiting_service_duration"
+	StateAwaitingName                = "awaiting_name"
+	StateAwaitingContact             = "awaiting_contact"
+	StateNone                        = "none"
+	StateAwaitingServiceName         = "awaiting_service_name"
+	StateAwaitingServiceNameEdit     = "awaiting_service_name_edit"
+	StateAwaitingServicePrice        = "awaiting_service_price"
+	StateAwaitingServicePriceEdit    = "awaiting_service_price_edit"
+	StateAwaitingServiceDuration     = "state_awaiting_service_duration"
+	StateAwaitingServiceDurationEdit = "state_awaiting_service_duration_edit"
 )
 
 var TempStorage = make(map[int64]SelectedSlot)
@@ -24,6 +27,7 @@ type TempService struct {
 	Name     string
 	Price    int
 	Duration int
+	ID       int
 }
 
 type SelectedSlot struct {

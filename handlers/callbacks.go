@@ -33,6 +33,8 @@ func CallbackHandler(c telebot.Context) error {
 		return HandleDeclineBooking(c)
 	} else if strings.Contains(callbackData, "delete_service") {
 		return HandleDeleteService(c)
+	} else if strings.Contains(callbackData, "edit_service") {
+		return HandleEditService(c)
 	} else if strings.Contains(callbackData, "go_back") {
 		return keyboards.SendMainMenu(c, "Главное меню")
 	} else if strings.Contains(callbackData, "rate_service") {

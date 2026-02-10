@@ -16,6 +16,12 @@ func MessageHandler(c telebot.Context) error {
 		return c.Send("Пожалуйста, отправьте контакт кнопкой ниже.")
 	case models.StateAwaitingServiceName:
 		return ProcessServiceName(c)
+	case models.StateAwaitingServiceNameEdit:
+		return ProcessServiceNameEdit(c)
+	case models.StateAwaitingServiceDurationEdit:
+		return ProcessServiceDurationEdit(c)
+	case models.StateAwaitingServicePriceEdit:
+		return ProcessServicePriceEdit(c)
 	case models.StateAwaitingServiceDuration:
 		return ProcessServiceDuration(c)
 	case models.StateAwaitingServicePrice:

@@ -40,6 +40,15 @@ func AddService(s models.TempService) error {
 	return err
 }
 
+func EditService(s models.TempService) error {
+	durationStr := fmt.Sprintf("%d minutes", s.Duration)
+
+	_, err := DB.Exec(context.Background(),
+		"UPDATE services SET name = $1, price = $2, duration = $3 WHERE id = $4",
+		s.Name, s.Price, durationStr, s.ID)
+	return err
+}
+
 func GetServiceByID(serviceID int) (*models.Service, error) {
 	query := `SELECT id, name, price, duration FROM services WHERE id = $1`
 	var service models.Service
