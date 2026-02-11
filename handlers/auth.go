@@ -37,6 +37,7 @@ func ProcessNameInput(c telebot.Context) error {
 
 	state := models.RegistrationStorage[userID]
 	state.Name = name
+	state.Username = c.Sender().Username
 	models.RegistrationStorage[userID] = state
 	models.UserState[userID] = models.StateAwaitingContact
 
@@ -61,7 +62,7 @@ func ContactHandler(c telebot.Context) error {
 	state := models.RegistrationStorage[userID]
 	state.Phone = phone
 
-	err := database.SaveClient(userID, state.Name, state.Phone)
+	err := database.SaveClient(userID, state.Name, state.Phone, state.Username)
 	if err != nil {
 		log.Println("Ошибка сохранения клиента:", err)
 		return c.Send("Ошибка при регистрации. Попробуйте позже.")

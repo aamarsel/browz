@@ -36,8 +36,9 @@ type SelectedSlot struct {
 }
 
 type RegistrationState struct {
-	Name  string
-	Phone string
+	Name     string
+	Username string
+	Phone    string
 }
 
 type Service struct {

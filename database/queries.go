@@ -17,10 +17,10 @@ func ClientExists(userID int64) (bool, error) {
 	return exists, err
 }
 
-func SaveClient(userID int64, name, phone string) error {
+func SaveClient(userID int64, name, phone string, username string) error {
 	_, err := DB.Exec(context.Background(),
-		"INSERT INTO clients (telegram_id, name, phone) VALUES ($1, $2, $3)",
-		userID, name, phone)
+		"INSERT INTO clients (telegram_id, name, phone, telegram_username) VALUES ($1, $2, $3, $4)",
+		userID, name, phone, username)
 	return err
 }
 
